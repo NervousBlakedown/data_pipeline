@@ -1,34 +1,18 @@
-# src/kafka_producer.py
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 import json
 import time
-import random
 
-producer = KafkaProducer(
-    bootstrap_servers=['localhost:9092'],
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+producer = Producer({'bootstrap.servers': 'localhost:9092'})
 
-def produce_messages():
-    while True:
-        # Simulate data to send to Kafka
-        data = {
-            'sensor_id': random.randint(1, 10),
-            'temperature': round(random.uniform(20.0, 30.0), 2),
-            'humidity': round(random.uniform(30.0, 70.0), 2),
-            'timestamp': time.time()
-        }
-        producer.send('test-topic', value=data)
-        print(f"Sent: {data}")
-        
-        # Wait before sending the next message
-        time.sleep(1)
+def delivery_report(err, msg):
+    if err is not None:
+        print(f"Message delivery failed: {err}")
+    else:
+        print(f"Message delivered to {msg.topic()} [{msg.partition()}]")
 
-if __name__ == "__main__":
-    try:
-        produce_messages()
-    except KeyboardInterrupt:
-        print("Stopping producer...")
-    finally:
-        producer.flush()
-        producer.close()
+for i in range(10):
+    data = json.dumps({'sensor_id': i, 'value': i * 10})
+    producer.produce('test-topic', value=data, callback=delivery_report)
+    producer.poll(0)
+
+producer.flush()
