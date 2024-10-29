@@ -2,7 +2,6 @@
 from kafka import KafkaConsumer
 import json
 
-# Set up the Kafka consumer
 consumer = KafkaConsumer(
     'test-topic',
     bootstrap_servers=['localhost:9092'],
