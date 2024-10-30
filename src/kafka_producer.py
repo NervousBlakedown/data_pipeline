@@ -1,6 +1,28 @@
 from confluent_kafka import Producer
 import json
 import time
+import sqlite3
+import fastavro
+from kafka import KafkaProducer
+import requests
+import avro.schema
+from avro.io import DatumWriter, BinaryEncoder
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+import random
+
+# Schema Registry Setup
+schema_registry_url = "http://localhost:8081"
+schema_registry_client = SchemaRegistryClient({"url": schema_registry_url})
+
+# Define the Kafka topic and Schema Registry subject
+topic = "user-events"
+schema_subject = f"{topic}-value"
+
+# Load Avro schema
+with open('config/event_schema.avsc', 'r') as file:
+    schema_str = file.read()
+schema = schema_registry_client.register_schema(schema_subject, schema_str)
 
 producer = Producer({'bootstrap.servers': 'localhost:9092'})
 
